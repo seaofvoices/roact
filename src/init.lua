@@ -13,6 +13,12 @@ local Binding = require(script.Binding)
 local robloxReconciler = createReconciler(RobloxRenderer)
 local reconcilerCompat = createReconcilerCompat(robloxReconciler)
 
+local DevTools = nil
+
+if _G.ENABLE_DEV_TOOLS then
+	DevTools = robloxReconciler.devTools
+end
+
 local Roact = strict({
 	Component = require(script.Component),
 	createElement = require(script.createElement),
@@ -41,6 +47,8 @@ local Roact = strict({
 	reconcile = reconcilerCompat.reconcile,
 
 	setGlobalConfig = GlobalConfig.set,
+
+	DevTools = DevTools,
 
 	-- APIs that may change in the future without warning
 	UNSTABLE = {},

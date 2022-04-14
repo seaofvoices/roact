@@ -170,6 +170,11 @@ local function createReconciler(renderer)
 
 		local kind = ElementKind.of(virtualNode.currentElement)
 
+		if _G.ENABLE_DEV_TOOLS then
+            local devTools = reconciler.devTools
+			devTools._reportStartVirtualNodeUpdate(devTools.getElementName(virtualNode.currentElement), "unmount")
+		end
+
 		-- selene: allow(if_same_then_else)
 		if kind == ElementKind.Host then
 			renderer.unmountHostNode(reconciler, virtualNode)
@@ -189,6 +194,10 @@ local function createReconciler(renderer)
 			end
 		else
 			error(("Unknown ElementKind %q"):format(tostring(kind)), 2)
+		end
+
+		if _G.ENABLE_DEV_TOOLS then
+			reconciler.devTools._reportEndVirtualNodeUpdate()
 		end
 	end
 
@@ -259,12 +268,31 @@ local function createReconciler(renderer)
 		end
 
 		if virtualNode.currentElement.component ~= newElement.component then
+			if _G.ENABLE_DEV_TOOLS then
+				local devTools = reconciler.devTools
+				devTools._reportStartVirtualNodeUpdate(
+					("%s -> %s"):format(
+						devTools.getElementName(virtualNode.currentElement),
+						devTools.getElementName(newElement)
+					),
+					"replace"
+				)
+				local nextVirtualNode = replaceVirtualNode(virtualNode, newElement)
+				devTools._reportEndVirtualNodeUpdate()
+				return nextVirtualNode
+			end
+
 			return replaceVirtualNode(virtualNode, newElement)
 		end
 
 		local kind = ElementKind.of(newElement)
 
 		local shouldContinueUpdate = true
+
+		if _G.ENABLE_DEV_TOOLS then
+            local devTools = reconciler.devTools
+			devTools._reportStartVirtualNodeUpdate(devTools.getElementName(newElement), "update")
+		end
 
 		if kind == ElementKind.Host then
 			virtualNode = renderer.updateHostNode(reconciler, virtualNode, newElement)
@@ -278,6 +306,10 @@ local function createReconciler(renderer)
 			virtualNode = updateFragmentVirtualNode(virtualNode, newElement)
 		else
 			error(("Unknown ElementKind %q"):format(tostring(kind)), 2)
+		end
+
+		if _G.ENABLE_DEV_TOOLS then
+			reconciler.devTools._reportEndVirtualNodeUpdate()
 		end
 
 		-- Stateful components can abort updates via shouldUpdate. If that
@@ -400,6 +432,11 @@ local function createReconciler(renderer)
 
 		local virtualNode = createVirtualNode(element, hostParent, hostKey, context, legacyContext)
 
+		if _G.ENABLE_DEV_TOOLS then
+            local devTools = reconciler.devTools
+			devTools._reportStartVirtualNodeUpdate(devTools.getElementName(element), "mount")
+		end
+
 		if kind == ElementKind.Host then
 			renderer.mountHostNode(reconciler, virtualNode)
 		elseif kind == ElementKind.Function then
@@ -412,6 +449,11 @@ local function createReconciler(renderer)
 			mountFragmentVirtualNode(virtualNode)
 		else
 			error(("Unknown ElementKind %q"):format(tostring(kind)), 2)
+		end
+
+
+		if _G.ENABLE_DEV_TOOLS then
+			reconciler.devTools._reportEndVirtualNodeUpdate()
 		end
 
 		return virtualNode
@@ -494,6 +536,11 @@ local function createReconciler(renderer)
 		updateVirtualNodeWithChildren = updateVirtualNodeWithChildren,
 		updateVirtualNodeWithRenderResult = updateVirtualNodeWithRenderResult,
 	}
+
+	if _G.ENABLE_DEV_TOOLS then
+		local DevTools = require(script.Parent.DevTools)
+		reconciler.devTools = DevTools.createDevTools()
+	end
 
 	return reconciler
 end

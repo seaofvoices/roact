@@ -1,6 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local isRobloxCli, ProcessService = pcall(game.GetService, game, "ProcessService")
 
+_G.ENABLE_DEV_TOOLS = true
+
 local Roact = require(ReplicatedStorage.Roact)
 local TestEZ = require(ReplicatedStorage.TestEZ)
 

@@ -169,6 +169,32 @@ function Component:setState(mapState)
 	end
 end
 
+if _G.ENABLE_DEV_TOOLS then
+	function Component:setStateDebug(mapState)
+		local internalData = self[InternalData]
+		local reconciler = internalData.reconciler
+		reconciler.devTools.enableUpdateStats()
+		self:setState(mapState)
+		local updates = reconciler.devTools.disableUpdateStats()
+
+		if #updates > 1 then
+			local lines = {
+				("%s:setState() triggered %d update%s"):format(
+					self.__componentName,
+					#updates,
+					#updates > 1 and "s" or ""
+				),
+			}
+
+            for _, update in ipairs(updates) do
+                table.insert(lines, reconciler.devTools.formatUpdate(update))
+            end
+
+            print(table.concat(lines, "\n"))
+		end
+	end
+end
+
 --[[
 	Returns the stack trace of where the element was created that this component
 	instance's properties are based on.

@@ -32,6 +32,10 @@ return function()
 			UNSTABLE = true,
 		}
 
+		if _G.ENABLE_DEV_TOOLS then
+			publicApi.DevTools = "table"
+		end
+
 		expect(Roact).to.be.ok()
 
 		for key, valueType in pairs(publicApi) do
